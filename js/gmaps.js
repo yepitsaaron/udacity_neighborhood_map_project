@@ -84,7 +84,7 @@ function geocodeAddress(place, pan=false) {
             }
             else {
                 console.log('Geocode was not successful for the following reason: ' + status);
-                alert('Could not find a location that matched' + location + '.');
+                alert('Geocode failure because: ' + status + '\nWe could not match the ' + location + ' address.');
             }
         });
 }
