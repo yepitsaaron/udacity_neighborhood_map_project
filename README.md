@@ -1,7 +1,8 @@
 ## Get started
 1. Copy this repo locally `https://github.com/yepitsaaron/udacity_neighborhood_map_project.git`
-2. Update the API keys in `app.js` and `index.html`
-3. Open up `index.html` in a browser and you're good to go.
+2. Run 'bower install' in the directory
+3. Update the API keys in `app.js` and `index.html`
+4. Open up `index.html` in a browser and you're good to go.
 
 Second warning: you'll need a Foursquare API key (in `app.js`), and Google Maps API key (in `index.html`)
 

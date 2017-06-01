@@ -2,6 +2,7 @@ var map;
 
 // Create a new blank array for all the listing markers.
 var markers = [];
+var marker_array = [];
 
 function initMap() {
     // Constructor creates a new map - only center and zoom are required.
@@ -17,18 +18,46 @@ function initMap() {
 // set map markers from static data
 function createMarkerList() {
 
-    // map() method creates a new array with the results of calling a provided
-    // function on every element in this array
+    // this only runs on the filtered places
     vm.placeFiltered().map(function(place) {
         geocodeAddress(place, false);
     });
 
-    // below method errored when backspacing
-    //for (var i = 0; i < vm.placeFiltered().length; i++) {
-    // get a lat/long from the address
-    //geocodeAddress(vm.placeFiltered()[i].address());
-    //}
+}
 
+// get geo code lat/long from a full address
+function geocodeAddress(place, pan=false) {
+
+    var location = place.address();
+    var geocoder = new google.maps.Geocoder();
+
+    var address =
+        geocoder.geocode({'address': location}, function(results, status) {
+            if (status === 'OK') {
+                var latLong = results[0].geometry.location;
+                var marker = addMarker(latLong);
+                place.marker = marker;
+
+                marker.addListener('click', function() {
+                    // make sure we're doing updates for both interactions
+                    vm.currentPlace(place);
+                    vm.getFSRating(place.fs_id());
+                    map.panTo(marker.getPosition());
+                    marker.setAnimation(google.maps.Animation.DROP);
+                });
+
+                // Pans to marker on the map if enabled
+                if (pan) {
+                    map.panTo(marker.getPosition());
+                    marker.setAnimation(google.maps.Animation.DROP);
+                }
+            }
+            // error handling was already included
+            else {
+                console.log('Geocode was not successful for the following reason: ' + status);
+                alert('Geocode failure because: ' + status + '\nWe could not match the ' + location + ' address.');
+            }
+        });
 }
 
 // Adds a marker to the map from a lat-long object
@@ -38,6 +67,7 @@ function addMarker(location) {
         // make all default markers w/ icon maker
         icon: makeMarkerIcon('0091ff'),
         map: map
+
     });
 
     // Style the markers a bit
@@ -60,45 +90,25 @@ function addMarker(location) {
 
 }
 
-// get geo code lat/long from a full address
-function geocodeAddress(place, pan=false) {
+function showMarkers() {
+    // reset marker array
+    marker_array =[];
 
-    var location = place.address();
-    var geocoder = new google.maps.Geocoder();
-
-    var address =
-        geocoder.geocode({'address': location}, function(results, status) {
-            if (status === 'OK') {
-                var latLong = results[0].geometry.location;
-                var marker = addMarker(latLong);
-
-                marker.addListener('click', function() {
-                    // make sure we're doing updates for both interactions
-                    vm.currentPlace(place);
-                    vm.getFSRating(place.fs_id());
-                    marker.setAnimation(google.maps.Animation.DROP);
-                });
-
-                // Pans to marker on the map if enabled
-                if (pan) map.panTo(marker.getPosition());
-            }
-            else {
-                console.log('Geocode was not successful for the following reason: ' + status);
-                alert('Geocode failure because: ' + status + '\nWe could not match the ' + location + ' address.');
-            }
-        });
-}
-
-
-// This function will loop through the markers and hide them all.
-function clearMarkers() {
-
-    for (var i = 0; i < markers.length; i++) {
-        markers[i].setMap(null);
+    //get all the filtered markers
+    for (var i = 0; i < vm.placeFiltered().length; i++) {
+        marker_array.push(vm.placeFiltered()[i].marker);
     }
 
-    markers = [];
+    for (var i = 0; i < markers.length; i++) {
+        // only show markers included in the marker array
+        if (marker_array.includes(markers[i]) == true) {
+            markers[i].setMap(map)
+        }
+        else {
+            markers[i].setMap(null)
+        }
 
+    }
 }
 
 function makeMarkerIcon(markerColor) {

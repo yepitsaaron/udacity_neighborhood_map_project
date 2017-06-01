@@ -7,6 +7,7 @@ var Place = function(data) {
     this.address = ko.observable(data.address);
     this.fs_id = ko.observable(data.fs_id);
 
+    this.marker = null;
     this.currentPlace = ko.observable('');
 
 }
@@ -31,9 +32,7 @@ var ViewModel = function() {
 
         //access the viewmodel using self & update the view w/ the new place
         self.currentPlace(place);
-
-        // center map using pan = true
-        geocodeAddress(place, true);
+        google.maps.event.trigger(place.marker, 'click');
 
         // TODO - do something else for the place
         self.getFSRating(place.fs_id());
@@ -62,8 +61,7 @@ var ViewModel = function() {
 
     // Add a subscription for every time the filter changes to remap markers
     self.placeFiltered.subscribe(function() {
-        clearMarkers();
-        createMarkerList();
+        showMarkers();
     });
 
 
@@ -91,12 +89,15 @@ var ViewModel = function() {
             error: function(XMLHttpRequest, textStatus, errorThrown) {
                 console.log("Status: " + textStatus);
                 console.log("Error: " + errorThrown);
+                alert("Error: " + errorThrown);
                 self.currentFSRating(null);
             }
         })
         // if ajax request fails, show the user an error
         .fail(function() {
             console.log("There was an error getting the Foursquare rating!");
+            // added an alert box since a console message was not enough
+            alert("There was an error getting the Foursquare rating!");
         });
 
     };
